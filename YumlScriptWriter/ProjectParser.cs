@@ -33,6 +33,11 @@ namespace YumlProjectDiagramScriptWriter
 		// The name of the attribute that the referenced file or wildcard is stored in.
 		const string ATTRIBUTE_INCLUDE = "Include";
 
+		// The following constants are used to filter out assemblies we don't want to draw in the yUML diagram.
+		// Assemblies starting with these prefixes are ignored.
+		const string ASSEMBLY_PREFIX_SYSTEM = "System";
+		const string ASSEMBLY_PREFIX_MICROSOFT = "Microsoft";
+
 		public string GetProjectAssemblyName(XElement projectElement)
 		{
 			var assemblyNameElements = from element in projectElement.Descendants(MSBUILD_NAMESPACE + ELEMENT_ASSEMBLY_NAME)
@@ -124,10 +129,16 @@ namespace YumlProjectDiagramScriptWriter
 				}
 
 				// Ignore system or Microsoft references. In the future these could optionally included.
-				//if (filePath.StartsWith("System"))
-				//{
-				//	continue;
-				//}
+				if (referenceName.StartsWith(ASSEMBLY_PREFIX_SYSTEM) || referenceName.StartsWith(ASSEMBLY_PREFIX_MICROSOFT))
+				{
+					continue;
+				}
+
+				// Trim reference names to the first comma. E.g. trim "ProjectA, 1.0.0.0" to just "ProjectA"
+				if (referenceName.Contains(','))
+				{
+					referenceName = referenceName.Substring(0, referenceName.IndexOf(','));
+				}
 
 				projectReferences.Add(referenceName);
 			}
